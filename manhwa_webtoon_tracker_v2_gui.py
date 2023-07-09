@@ -1,4 +1,4 @@
-# This program is the gui section of the manhwa_webtoon_tracker_v2
+# This is version 2 of my manwha-webtoon-tracker-app
 
 from tkinter import *
 from tkinter import filedialog
@@ -131,7 +131,7 @@ def add_new_series():
 
     create_series_form()
 
-def collect_series_desc_from_db(u_status):
+def get_series_descs(u_status):
     series_descriptions = []
 
     sql = "SELECT * FROM webtoon_tracker_tb WHERE user_status = %s ORDER BY title"
@@ -144,13 +144,13 @@ def collect_series_desc_from_db(u_status):
 
     return series_descriptions
 
-def click_series():    
+def click_series(series_desc):    
     series_desc_window = Toplevel()
     series_desc_window.title("Series Description (temp)")
     series_desc_window.geometry("600x500")
     series_desc_window.config(background="#001e00")
     
-    image_label = Label(series_desc_window, width=200, height=285, bg="black", image=temp_image)
+    image_label = Label(series_desc_window, width=200, height=285, bg="black", image=default_img)
     image_label.place(x=30,y=60)
 
     def create_desc_placeholder(desc_name, desc, x, y):
@@ -170,9 +170,44 @@ def click_series():
     grey_box2 = Label(series_desc_window, bg="#6e6e6e", width=30,height=2).place(x=315, y=413)
     chapters = Label(series_desc_window, text=f"{series_desc[4]} / {series_desc[5]} CH", font=("Arial", 12, "bold"), fg="white", bg="#6e6e6e").place(x=370,y=420)
 
-    temp_upcoming_release = "1 day"
     green_stripe = Label(series_desc_window, bg="green", width=600, height=1).place(x=0,y=10)
     upcoming_release_in = Label(series_desc_window, text=f"Chapter {series_desc[5]+1} in {upcoming_release}", font=("Arial", 8, "bold"), fg="white", bg="green").place(x=240,y=10)
+
+class Series:
+    def __init__(self, series_desc, coords, collective_series_frame) -> None:
+        self.series_desc = series_desc
+        self.coords = coords
+        self.collective_series_frame = collective_series_frame
+
+    def display_series(self):
+        series_container_button = Button(self.collective_series_frame, command = lambda: click_series(self.series_desc), text=(f"{self.series_desc[0]}\nCh {self.series_desc[4]} / {self.series_desc[5]}\nCh {self.series_desc[5]+1} in {upcoming_release}"),
+                                        font=("Arial", 8, 'bold'), fg="white", bg="#181818", activeforeground="white", activebackground="#181818",
+                                        highlightbackground="green", highlightthickness=3, image=default_img, compound="top", width=200, height=285)
+        
+        series_container_button.grid(row=self.coords[0], column=[self.coords[1]], padx=5, pady=5)
+
+def display_collective_series(series_descs, y_coord):
+    collective_series_frame = Frame(main_window)
+    collective_series_frame.config(background="#001e00")
+    
+    r = 0
+    c = 0
+
+    count = 0
+
+    for i in range(len(series_descs)):
+        series = Series(series_descs[i], [r,c], collective_series_frame)
+
+        series.display_series()
+
+        c+=1
+        count += 1
+
+        if count == 4:
+            r+=1
+            c=0
+
+    collective_series_frame.place(x=200, y=y_coord)
 
 main_window = Tk()
 
@@ -196,66 +231,15 @@ search_bar_entrybox.place(x=950,y=45)
 add_new_series_button = Button(main_window, text="+", command=add_new_series, width=3, height=1,
                                font=("Arial", 14, 'bold'), fg="white", bg="#001e00").place(x=1200, y=40)
 
-def unpack_series_descriptions(series_desc_type):   # This unpacks all series from db into separated lists; all the poster_image_dirs will have to be converted properly to \\ form
-    for row in series_desc_type:
-        global series_desc 
-        series_desc = []
-        for element in row:
-            series_desc.append(element)
+#THESE ARE TEMP VALUES
+upcoming_release="X days (Incomplete)" # haven't started implementing time feature yet
+temp_image = PhotoImage(file='C:\\Users\\ashad\\Documents\\python_programs\\practical_projects\\manhwa_webtoon_tracker_v2_posters\\Lookism_Poster.png') #attempting to work out how to add poster to specified series
 
-        print(series_desc)
-        print()
-        break
+series_descs_r = get_series_descs(("Reading", ))
+series_descs_p = get_series_descs(("Plan To Read", ))
 
-r_series_descriptions = collect_series_desc_from_db(("Reading",))
-f_series_descriptions = collect_series_desc_from_db(("Finished",))
-oh_series_descriptions = collect_series_desc_from_db(("On Hold",))
-ptr_series_descriptions = collect_series_desc_from_db(("Plan To Read",))
+y_coord = 100
 
-#unpack_series_descriptions(r_series_descriptions)
-unpack_series_descriptions(r_series_descriptions)
-
-
-#THESE ARE ALL TEMP VALUES
-title="Lookism"
-author_x="Tae-Jun Park"
-genres="Action"
-user_status_x="Reading"
-current_chapter=440
-latest_chapter=440
-publishing_status_x="Ongoing"
-weekly_release_x="Sunday"
-upcoming_release="1 day"
-temp_image = PhotoImage(file='C:\\Users\\ashad\\Documents\\python_programs\\practical_projects\\manhwa_webtoon_tracker_v2_posters\\Lookism_Poster.png')
-
-# container (frame)
-# -> image + title (button)
-    # -> when hovered over: right side; plus button (update chapter), left side; trash button (remove series from db)
-# -> title (button; like clicking on link)
-# -> chapter
-# -> upcoming release (if applicable)
-
-move_x = 200+50
-move_y = 285+50
-
-main_frame = Frame(main_window, width=(200+move_x*3), height=(285+move_y*2))
-main_frame.config(background="#001e00")
-
-def create_series_container(img, x_coord, y_coord):
-    series_container_button = Button(main_frame, command = click_series, text=(f"{title}\nCh {current_chapter} / {latest_chapter}\nCh {latest_chapter+1} in {upcoming_release}"),
-                                    font=("Arial", 8, 'bold'), fg="white", bg="#181818", activeforeground="white", activebackground="#181818",
-                                    highlightbackground="green", highlightthickness=3, image=img, compound="top", width=200, height=285)
-    
-    series_container_button.place(x=x_coord, y=y_coord)
-
-    return series_container_button
-
-series_containers = [0,0,0,0]
-
-for i in range(2):
-    for j in range(len(series_containers)):
-        series_containers[j] = create_series_container(default_img, move_x*j, move_y*i)
-
-main_frame.place(x=200, y=100)
+display_collective_series(series_descs_r, y_coord)
 
 main_window.mainloop()
