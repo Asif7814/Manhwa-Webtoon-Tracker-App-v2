@@ -180,7 +180,12 @@ class Series:
         self.collective_series_frame = collective_series_frame
 
     def display_series(self):
-        series_container_button = Button(self.collective_series_frame, command = lambda: click_series(self.series_desc), text=(f"{self.series_desc[0]}\nCh {self.series_desc[4]} / {self.series_desc[5]}\nCh {self.series_desc[5]+1} in {upcoming_release}"),
+        if self.series_desc[3] == "Plan To Read":
+            text = f"{self.series_desc[0]}\n{self.series_desc[5]} Chapters"
+        else:
+            text = f"{self.series_desc[0]}\nCh {self.series_desc[4]} / {self.series_desc[5]}\nCh {self.series_desc[5]+1} in {upcoming_release}"
+
+        series_container_button = Button(self.collective_series_frame, command = lambda: click_series(self.series_desc), text=text,
                                         font=("Arial", 8, 'bold'), fg="white", bg="#181818", activeforeground="white", activebackground="#181818",
                                         highlightbackground="green", highlightthickness=3, image=default_img, compound="top", width=200, height=285)
         
