@@ -186,10 +186,12 @@ class Series:
         
         series_container_button.grid(row=self.coords[0], column=[self.coords[1]], padx=5, pady=5)
 
-def display_collective_series(series_descs, y_coord):
-    collective_series_frame = Frame(main_window)
+def display_collective_series(collection_label, series_descs, y_coord):
+    collective_series_frame = Frame(secondary_frame)
     collective_series_frame.config(background="#001e00")
-    
+
+    collective_series_label = Label(secondary_frame, text=collection_label, font=("Arial", 12, 'bold'), fg="white", bg="#6d706d").grid(row=y_coord, column=0)
+
     r = 0
     c = 0
 
@@ -207,29 +209,45 @@ def display_collective_series(series_descs, y_coord):
             r+=1
             c=0
 
-    collective_series_frame.place(x=200, y=y_coord)
+    collective_series_frame.grid(row=y_coord+1, column=0)
 
 main_window = Tk()
 
 main_window.title("Series Tracker")
-main_window.geometry("1400x800")
-main_window.config(background="#001e00")
+main_window.geometry("1200x800")
+
+main_frame = Frame(main_window)
+main_frame.pack(fill=BOTH, expand=1)
+
+my_canvas = Canvas(main_frame)
+my_canvas.pack(side=LEFT, fill=BOTH, expand=1)
+
+my_scroll_bar = ttk.Scrollbar(main_frame, orient=VERTICAL, command=my_canvas.yview)
+my_scroll_bar.pack(side=RIGHT, fill=Y)
+
+my_canvas.configure(yscrollcommand=my_scroll_bar.set)
+my_canvas.bind("<Configure>", lambda e: my_canvas.configure(scrollregion=my_canvas.bbox("all")))
+
+secondary_frame = Frame(my_canvas)
+secondary_frame.config(background="#001e00")
+
+my_canvas.create_window((0,0), window=secondary_frame, anchor="nw")
 
 default_img = PhotoImage(file="C:\\Users\\ashad\\Documents\\python_programs\\practical_projects\\webtoon_logo.png")
 
-title_label = Label(main_window, text="Webtoon", font=("Arial", 14, 'bold'), fg="white", bg="#001e00",
-                    highlightbackground="green", highlightthickness=2)
-title_label.place(x=635,y=40)
+title_label = Label(secondary_frame, text="Webtoon", font=("Arial", 14, 'bold'), fg="white", bg="#001e00",
+                    highlightbackground="green", highlightthickness=2, width=10)
+title_label.grid(row=0, column=0, pady=5)
 
-search_bar_entrybox = Entry(main_window, font=("Arial", 12, 'bold'), fg="white", bg="#001e00",
-                            highlightbackground="white", width=23)
+search_bar_entrybox = Entry(secondary_frame, font=("Arial", 12, 'bold'), fg="white", bg="#001e00",
+                            highlightbackground="white", width=23) 
 
 search_bar_entrybox.insert(0, "Search")
 
-search_bar_entrybox.place(x=950,y=45)
+search_bar_entrybox.grid(row=0, column=1, padx=5, pady=5)
 
-add_new_series_button = Button(main_window, text="+", command=add_new_series, width=3, height=1,
-                               font=("Arial", 14, 'bold'), fg="white", bg="#001e00").place(x=1200, y=40)
+add_new_series_button = Button(secondary_frame, text="+", command=add_new_series, width=3, height=1,
+                               font=("Arial", 14, 'bold'), fg="white", bg="#001e00").grid(row=0,column=2, padx=5, pady=5)
 
 #THESE ARE TEMP VALUES
 upcoming_release="X days (Incomplete)" # haven't started implementing time feature yet
@@ -238,8 +256,7 @@ temp_image = PhotoImage(file='C:\\Users\\ashad\\Documents\\python_programs\\prac
 series_descs_r = get_series_descs(("Reading", ))
 series_descs_p = get_series_descs(("Plan To Read", ))
 
-y_coord = 100
-
-display_collective_series(series_descs_r, y_coord)
+display_collective_series("Reading", series_descs_r, 1)
+display_collective_series("Plan To Read", series_descs_p, 3) #3 is hard-coded, should figure out method to become more adaptable
 
 main_window.mainloop()
